@@ -5837,11 +5837,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored\\BulletinBored.csproj",
+      "projectUniqueName": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored.csproj",
       "projectName": "BulletinBored",
-      "projectPath": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored\\BulletinBored.csproj",
+      "projectPath": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored.csproj",
       "packagesPath": "C:\\Users\\nelsc\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored\\obj\\",
+      "outputPath": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\nelsc\\AppData\\Roaming\\NuGet\\NuGet.Config",

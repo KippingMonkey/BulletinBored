@@ -16,31 +16,32 @@ namespace BulletinBored
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseSqlServer(@"Data Source=laptop-9gj2bhv1;Initial Catalog=BulletinBored;Intergrated Security=SSPI");
+            options.UseSqlServer(@"Data Source=laptop-9gj2bhv1;Initial Catalog=BulletinBored;Integrated Security=SSPI");
         }
     }
 
     public class User
     {
+        public int ID { get; set; }
         [MaxLength(12), Required]
         public string UserName { get; set; }
         [MaxLength(12), Required]
         public string PassWord { get; set; }
         public List<Post> UserPosts { get; set; }
-        public List<Post> LikedPosts { get; set; }
     }
     public class Post
     {
+        public int ID { get; set; }
         [MaxLength(255),Required]
         public string PostHeading { get; set; }
         public string PostContent { get; set; }
-        public List<Category> categories { get; set; }
         public List<User> UserLikes { get; set; }
-        [Required]
-        public User User { get; set; }
+        public List<Category> categories { get; set; }
+        
     }
     public class Category
     {
+        public int ID { get; set; }
         public string School { get; set; }
         public string Humor { get; set; }
         public string Event { get; set; }

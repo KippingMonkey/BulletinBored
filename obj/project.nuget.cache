@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "R5wP+XQWfjcwMnA67uDNNFMADEZbtvcXqMYY3PtxZOCw1WhPF75miHaY9Pl05xN/57xhs95VWa64OufC/wBOUA==",
+  "dgSpecHash": "+Pvmuy/XE7qm5+ZGzNsmdDy8jHAmAMTgi7JFmteR9xfO0pO01lhnF4SXbHD9cTrT/uE39NrNBSc9U/4eJO+AJg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored\\BulletinBored.csproj",
+  "projectFilePath": "C:\\Users\\nelsc\\source\\repos\\BulletinBored\\BulletinBored.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\nelsc\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\nelsc\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
