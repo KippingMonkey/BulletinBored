@@ -14,7 +14,6 @@ namespace BulletinBored
     {
         public DbSet<User> User { get; set; }
         public DbSet<Post> Post { get; set; }
-        public DbSet<Category> Category { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -30,6 +29,7 @@ namespace BulletinBored
         [MaxLength(12), Required]
         public string PassWord { get; set; }
         public List<Post> UserPosts { get; set; }
+        
     }
     public class Post
     {
@@ -39,10 +39,10 @@ namespace BulletinBored
         public string PostContent { get; set; }
         public DateTime Date { get; set; }
         public List<User> UserLikes { get; set; }
-        public List<Categories> Category { get; set; }
-        
+        public List<Category> Categories { get; set; }
     }
-    public enum Categories
+
+    public enum Category
     {
         School,
         Humor,
@@ -81,6 +81,7 @@ namespace BulletinBored
 
                 WriteHeading("Main Menu");
                 int selected = ShowMenu("", new[] {
+                    "My Posts",
                     "Create Post",
                     "Delete Post",
                     "Most Recent Posts",
@@ -91,12 +92,13 @@ namespace BulletinBored
                 });
                 Clear();
 
-                if (selected == 0) CreatePost();
-                else if (selected == 1) DeletePost();
-                else if (selected == 2) ListMostRecent();
-                else if (selected == 3) ListMostLiked();
-                else if (selected == 4) ListByCategory();
-                else if (selected == 5) SearchPosts();
+                if (selected == 0) ListUserPosts();
+                else if (selected == 1) CreatePost();
+                else if (selected == 2) DeletePost();
+                else if (selected == 3) ListMostRecent();
+                else if (selected == 4) ListMostLiked();
+                else if (selected == 5) ListByCategory();
+                else if (selected == 6) SearchPosts();
                 else running = false;
 
                 WriteLine();
@@ -129,23 +131,53 @@ namespace BulletinBored
             throw new NotImplementedException();
         }
 
+        public static List<Category> ChooseCategories()
+        {
+            //Converts the list of Enums in Categories to an array of strings for ShowMenu
+            string[] categories = Enum.GetValues(typeof(Category)).Cast<string>().Select(v => v.ToString()).ToArray();
+            int counter = 1;
+            var chosenCategories = new List<Category>();
+
+            while (true)
+            {
+                int choice = ShowMenu($"Choose Category {counter}", categories);
+                counter++;
+                //takes the integer of the chosen category and converts it to the corresponding enum
+                chosenCategories.Add((Category)choice); 
+               
+
+                int yesNo = ShowMenu("Would you like to add more categories?", new[] { "Yes", "No" });
+                if (yesNo == 0) { }
+                else if (yesNo == 1) { break; } 
+            }
+
+                return chosenCategories; 
+        }
+
         private static void CreatePost()
         {
             Clear();
             string heading = ReadString("What's the heading?");
             string content = ReadString("What's your message?");
-            int choice = ShowMenu("Choose Categories", database.Category.AsNoTracking().Select(c => c.)
+            var categories = ChooseCategories();
+            
             DateTime date = DateTime.Now;
 
             var post = new Post
             {
                 PostHeading = heading,
                 PostContent = content,
+                Categories = categories,
                 Date = date
             };
 
             database.Post.Add(post);
             database.SaveChanges();
+        }
+        private static void ListUserPosts()
+        {
+            Clear();
+          
         }
 
         private static void CreateAccount()
