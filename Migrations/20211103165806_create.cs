@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BulletinBored.Migrations
 {
-    public partial class initialCreate : Migration
+    public partial class create : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -28,6 +28,7 @@ namespace BulletinBored.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PostHeading = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PostContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -77,21 +78,21 @@ namespace BulletinBored.Migrations
                 name: "PostUser",
                 columns: table => new
                 {
-                    UserLikesID = table.Column<int>(type: "int", nullable: false),
-                    UserPostsID = table.Column<int>(type: "int", nullable: false)
+                    LikesID = table.Column<int>(type: "int", nullable: false),
+                    PostsID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PostUser", x => new { x.UserLikesID, x.UserPostsID });
+                    table.PrimaryKey("PK_PostUser", x => new { x.LikesID, x.PostsID });
                     table.ForeignKey(
-                        name: "FK_PostUser_Post_UserPostsID",
-                        column: x => x.UserPostsID,
+                        name: "FK_PostUser_Post_PostsID",
+                        column: x => x.PostsID,
                         principalTable: "Post",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PostUser_User_UserLikesID",
-                        column: x => x.UserLikesID,
+                        name: "FK_PostUser_User_LikesID",
+                        column: x => x.LikesID,
                         principalTable: "User",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
@@ -103,9 +104,9 @@ namespace BulletinBored.Migrations
                 column: "PostsID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostUser_UserPostsID",
+                name: "IX_PostUser_PostsID",
                 table: "PostUser",
-                column: "UserPostsID");
+                column: "PostsID");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

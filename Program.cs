@@ -30,8 +30,9 @@ namespace BulletinBored
         public string UserName { get; set; }
         [MaxLength(12), Required]
         public string PassWord { get; set; }
-        public List<Post> UserPosts { get; set; }
+        public List<Post> Posts { get; set; }
         
+
     }
     public class Post
     {
@@ -39,9 +40,11 @@ namespace BulletinBored
         [MaxLength(255),Required]
         public string PostHeading { get; set; }
         public string PostContent { get; set; }
+        public int UserId { get; set; }
         public DateTime Date { get; set; }
-        public List<User> UserLikes { get; set; }
-        public List<Category> Categories { get; set; }
+        public List<User> Likes { get; set; }
+       
+        public List<Category> Categories { get; set; }  
     }
 
     public class Category
@@ -49,7 +52,7 @@ namespace BulletinBored
         public int Id { get; set; }
         public string Name { get; set; }
         public List<Post> Posts { get; set; }
-        Post Post { get; set; }
+       
     }
 
 
@@ -83,10 +86,11 @@ namespace BulletinBored
                     }
                 }
                 WriteLine();
-                Clear();
+              
                 running = true;
                 while (running)
                 {
+                    
                     WriteHeading("Main Menu");
                     int selected = ShowMenu("", new[] {
                     "My Posts",
@@ -95,6 +99,7 @@ namespace BulletinBored
                     "Most Recent Posts",
                     "Most Popular Posts",
                     "Posts by Category",
+                    "All Posts",
                     "Search",
                     "Quit"
                 });
@@ -106,7 +111,8 @@ namespace BulletinBored
                     else if (selected == 3) ListMostRecent();
                     else if (selected == 4) ListMostLiked();
                     else if (selected == 5) ListByCategory();
-                    else if (selected == 6) SearchPosts();
+                    else if (selected == 6) ShowAllPosts();
+                    else if (selected == 7) SearchPosts();
                     else running = false;
 
                     WriteLine(); 
@@ -115,7 +121,10 @@ namespace BulletinBored
             }
         }
 
-       
+        private static void ShowAllPosts()
+        {
+            throw new NotImplementedException();
+        }
 
         private static void SearchPosts()
         {
@@ -134,14 +143,23 @@ namespace BulletinBored
 
         private static void ListMostRecent()
         {
-            throw new NotImplementedException();
+            var posts = database.Post.AsNoTracking().OrderBy(p => p.Date).Select(p => p.PostHeading).Take(5).ToArray();
+            int choice = ShowMenu("Which post would you like to read?", posts);
+
+            var postToShow = database.Post.AsNoTracking().OrderBy(p => p.Date).Take(5).Skip(choice).First();
+
+            WriteLine($"- {postToShow.PostHeading}");
+            WriteLine($"- {postToShow.PostContent}");
+            WriteLine($"- {postToShow.Date:g}");
+            WriteLine();
+
         }
 
         private static void DeletePost()
         {
-            int choice = ShowMenu("Which post would you like to delete?", currentUser.UserPosts.Select(up => up.PostHeading).ToArray());
+            int choice = ShowMenu("Which post would you like to delete?", currentUser.Posts.Select(up => up.PostHeading).ToArray());
 
-            var postToDelete = currentUser.UserPosts.Skip(choice).First();
+            var postToDelete = currentUser.Posts.Skip(choice).First();
 
             database.Remove(postToDelete);
             database.SaveChanges();
@@ -183,23 +201,23 @@ namespace BulletinBored
                 PostHeading = heading,
                 PostContent = content,
                 Categories = categories,
-                Date = date
+                Date = date                
             };
 
-            database.Post.Add(post);
+            currentUser.Posts.Add(post);
             database.SaveChanges();
         }
 
         private static void ListUserPosts()
         {
-            if (currentUser.UserPosts == null)
+            if (currentUser.Posts.Count() == 0)
             {
                 WriteLine("You have no posts to show");
             }
             else 
             {
                 WriteHeading($"Posts by {currentUser.UserName}");
-                foreach (var post in currentUser.UserPosts)
+                foreach (var post in currentUser.Posts)
                 {
                     WriteLine($"- {post.PostHeading}");
                     WriteLine($"- {post.PostContent}");
@@ -228,7 +246,7 @@ namespace BulletinBored
 
                     WriteLine("Account created.");
                     WriteLine($"You are logged in as {user.UserName}.");
-                    currentUser = user;
+                    currentUser = database.User.Include(u => u.Posts).Where(u => u.UserName == userName).Single();
 
                     break; 
                 }
@@ -262,7 +280,7 @@ namespace BulletinBored
                     else 
                     {
                         WriteLine($"You are logged in as {user.UserName}.");
-                        currentUser = user;
+                        currentUser = database.User.Include(u => u.Posts).Where(u => u.UserName == userName).Single();
                         return;
                     } 
                 }

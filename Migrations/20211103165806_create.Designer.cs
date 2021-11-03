@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BulletinBored.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20211103135632_createDb")]
-    partial class createDb
+    [Migration("20211103165806_create")]
+    partial class create
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -53,6 +53,9 @@ namespace BulletinBored.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("ID");
 
@@ -98,15 +101,15 @@ namespace BulletinBored.Migrations
 
             modelBuilder.Entity("PostUser", b =>
                 {
-                    b.Property<int>("UserLikesID")
+                    b.Property<int>("LikesID")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserPostsID")
+                    b.Property<int>("PostsID")
                         .HasColumnType("int");
 
-                    b.HasKey("UserLikesID", "UserPostsID");
+                    b.HasKey("LikesID", "PostsID");
 
-                    b.HasIndex("UserPostsID");
+                    b.HasIndex("PostsID");
 
                     b.ToTable("PostUser");
                 });
@@ -130,13 +133,13 @@ namespace BulletinBored.Migrations
                 {
                     b.HasOne("BulletinBored.User", null)
                         .WithMany()
-                        .HasForeignKey("UserLikesID")
+                        .HasForeignKey("LikesID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BulletinBored.Post", null)
                         .WithMany()
-                        .HasForeignKey("UserPostsID")
+                        .HasForeignKey("PostsID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
