@@ -37,21 +37,19 @@ namespace BulletinBored
         [MaxLength(255),Required]
         public string PostHeading { get; set; }
         public string PostContent { get; set; }
+        public DateTime Date { get; set; }
         public List<User> UserLikes { get; set; }
-        public List<Category> categories { get; set; }
+        public List<Categories> Category { get; set; }
         
     }
-    public class Category
+    public enum Categories
     {
-        public int ID { get; set; }
-        public string School { get; set; }
-        public string Humor { get; set; }
-        public string Event { get; set; }
-        public string Food { get; set; }
-        public string Gaming { get; set; }
-        public string WhatEver { get; set; }
-        [Required]
-        public Post Post { get; set; }
+        School,
+        Humor,
+        Event,
+        Food,
+        Gaming,
+        WhatEver
     }
     class Program
     {
@@ -79,34 +77,75 @@ namespace BulletinBored
                         running = false;
                     }
                 }
+                WriteLine();
 
-                WriteLine("TEst");
-                ReadKey();
+                WriteHeading("Main Menu");
+                int selected = ShowMenu("", new[] {
+                    "Create Post",
+                    "Delete Post",
+                    "Most Recent Posts",
+                    "Most Popular Posts",
+                    "Posts by Category",
+                    "Search",
+                    "Quit"
+                });
+                Clear();
 
-                //    int selected = ShowMenu("What do you want to do?", new[] {
-                //    "List Movies",
-                //    "Add Movie",
-                //    "Delete Movie",
-                //    "Load Movies from CSV File",
-                //    "List Screenings",
-                //    "Add Screening",
-                //    "Delete Screening",
-                //    "Exit"
-                //});
-                    //Console.Clear();
+                if (selected == 0) CreatePost();
+                else if (selected == 1) DeletePost();
+                else if (selected == 2) ListMostRecent();
+                else if (selected == 3) ListMostLiked();
+                else if (selected == 4) ListByCategory();
+                else if (selected == 5) SearchPosts();
+                else running = false;
 
-                    //if (selected == 0) ListMovies();
-                    //else if (selected == 1) AddMovie();
-                    //else if (selected == 2) DeleteMovie();
-                    //else if (selected == 3) LoadMoviesFromCSVFile();
-                    //else if (selected == 4) ListScreenings();
-                    //else if (selected == 5) AddScreening();
-                    //else if (selected == 6) DeleteScreening();
-                    //else running = false;
+                WriteLine();
 
-                    //Console.WriteLine();
-                
             }
+        }
+
+        private static void SearchPosts()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void ListByCategory()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void ListMostLiked()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void ListMostRecent()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void DeletePost()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void CreatePost()
+        {
+            Clear();
+            string heading = ReadString("What's the heading?");
+            string content = ReadString("What's your message?");
+            int choice = ShowMenu("Choose Categories", database.Category.AsNoTracking().Select(c => c.)
+            DateTime date = DateTime.Now;
+
+            var post = new Post
+            {
+                PostHeading = heading,
+                PostContent = content,
+                Date = date
+            };
+
+            database.Post.Add(post);
+            database.SaveChanges();
         }
 
         private static void CreateAccount()
@@ -159,13 +198,6 @@ namespace BulletinBored
                 ReadKey();
                 Environment.Exit(0);
             }
-            
-            
-
-
-            
-           
-            
         }
     }
 
