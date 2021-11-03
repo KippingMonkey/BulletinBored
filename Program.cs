@@ -20,6 +20,7 @@ namespace BulletinBored
         {
             options.UseSqlServer(@"Data Source=laptop-9gj2bhv1;Initial Catalog=BulletinBored;Integrated Security=SSPI");
         }
+ 
     }
 
     public class User
@@ -82,9 +83,12 @@ namespace BulletinBored
                     }
                 }
                 WriteLine();
-
-                WriteHeading("Main Menu");
-                int selected = ShowMenu("", new[] {
+                Clear();
+                running = true;
+                while (running)
+                {
+                    WriteHeading("Main Menu");
+                    int selected = ShowMenu("", new[] {
                     "My Posts",
                     "Create Post",
                     "Delete Post",
@@ -94,18 +98,19 @@ namespace BulletinBored
                     "Search",
                     "Quit"
                 });
-                Clear();
+                    Clear();
 
-                if (selected == 0) ListUserPosts();
-                else if (selected == 1) CreatePost();
-                else if (selected == 2) DeletePost();
-                else if (selected == 3) ListMostRecent();
-                else if (selected == 4) ListMostLiked();
-                else if (selected == 5) ListByCategory();
-                else if (selected == 6) SearchPosts();
-                else running = false;
+                    if (selected == 0) ListUserPosts();
+                    else if (selected == 1) CreatePost();
+                    else if (selected == 2) DeletePost();
+                    else if (selected == 3) ListMostRecent();
+                    else if (selected == 4) ListMostLiked();
+                    else if (selected == 5) ListByCategory();
+                    else if (selected == 6) SearchPosts();
+                    else running = false;
 
-                WriteLine();
+                    WriteLine(); 
+                }
 
             }
         }
@@ -134,7 +139,12 @@ namespace BulletinBored
 
         private static void DeletePost()
         {
-            throw new NotImplementedException();
+            int choice = ShowMenu("Which post would you like to delete?", currentUser.UserPosts.Select(up => up.PostHeading).ToArray());
+
+            var postToDelete = currentUser.UserPosts.Skip(choice).First();
+
+            database.Remove(postToDelete);
+            database.SaveChanges();
         }
 
         public static List<Category> ChooseCategories()
@@ -179,25 +189,51 @@ namespace BulletinBored
             database.Post.Add(post);
             database.SaveChanges();
         }
+
         private static void ListUserPosts()
         {
-            Clear();
-          
+            if (currentUser.UserPosts == null)
+            {
+                WriteLine("You have no posts to show");
+            }
+            else 
+            {
+                WriteHeading($"Posts by {currentUser.UserName}");
+                foreach (var post in currentUser.UserPosts)
+                {
+                    WriteLine($"- {post.PostHeading}");
+                    WriteLine($"- {post.PostContent}");
+                    WriteLine($"- {post.Date:g}");
+                    WriteLine();
+                }
+            }
         }
 
         private static void CreateAccount()
         {
-            string userName = ReadString("Choose your username: ");
-            string password = ReadString("Choose your password: ");
+            while (true)
+            {
+                string userName = ReadString("Choose your username: ");
+                string password = ReadString("Choose your password: ");
 
-            var user = new User { UserName = userName, PassWord = password };
+                if (database.User.AsNoTracking().Any(u => u.UserName == userName))
+                {
+                    WriteLine("This username is taken, please try something else.");
+                }
+                else 
+                {
+                    var user = new User { UserName = userName, PassWord = password };
+                    database.User.Add(user);
+                    database.SaveChanges();
 
-            database.User.Add(user);
-            database.SaveChanges();
+                    WriteLine("Account created.");
+                    WriteLine($"You are logged in as {user.UserName}.");
+                    currentUser = user;
 
-            WriteLine("Account created.");
-            WriteLine($"You are logged in as {user.UserName}.");
-            currentUser = user;
+                    break; 
+                }
+            }
+            
 
         }
 
@@ -236,9 +272,10 @@ namespace BulletinBored
                 Environment.Exit(0);
             }
         }
+
         private static void PopulateCategory()
         {
-            if (database.Category.Count() == 0)
+            if (database.Category.Count() != 0)
             {
 
             }
