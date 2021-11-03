@@ -14,6 +14,7 @@ namespace BulletinBored
     {
         public DbSet<User> User { get; set; }
         public DbSet<Post> Post { get; set; }
+        public DbSet<Category> Category { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -42,15 +43,16 @@ namespace BulletinBored
         public List<Category> Categories { get; set; }
     }
 
-    public enum Category
+    public class Category
     {
-        School,
-        Humor,
-        Event,
-        Food,
-        Gaming,
-        WhatEver
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<Post> Posts { get; set; }
+        Post Post { get; set; }
     }
+
+
+  
     class Program
     {
         public static AppDbContext database = new AppDbContext();
@@ -64,6 +66,8 @@ namespace BulletinBored
 
             using (database)
             {
+                PopulateCategory();
+
                 bool running = true;
                 while (running)
                 {
@@ -106,6 +110,8 @@ namespace BulletinBored
             }
         }
 
+       
+
         private static void SearchPosts()
         {
             throw new NotImplementedException();
@@ -133,17 +139,16 @@ namespace BulletinBored
 
         public static List<Category> ChooseCategories()
         {
-            //Converts the list of Enums in Categories to an array of strings for ShowMenu
-            string[] categories = Enum.GetValues(typeof(Category)).Cast<string>().Select(v => v.ToString()).ToArray();
+            
             int counter = 1;
             var chosenCategories = new List<Category>();
 
             while (true)
             {
-                int choice = ShowMenu($"Choose Category {counter}", categories);
+                int choice = ShowMenu($"Choose Category {counter}", database.Category.Select( c => c.Name).ToArray());
                 counter++;
                 //takes the integer of the chosen category and converts it to the corresponding enum
-                chosenCategories.Add((Category)choice); 
+                chosenCategories.Add(database.Category.Skip(choice).First()); 
                
 
                 int yesNo = ShowMenu("Would you like to add more categories?", new[] { "Yes", "No" });
@@ -229,6 +234,23 @@ namespace BulletinBored
                 WriteLine("Program shutting down due to failed log in. Press any key to continue.");
                 ReadKey();
                 Environment.Exit(0);
+            }
+        }
+        private static void PopulateCategory()
+        {
+            if (database.Category.Count() == 0)
+            {
+
+            }
+            else
+            {
+                string[] categories = { "School", "Gaming", "Food", "Humor", "Event", "Whatever" };
+                foreach (var name in categories)
+                {
+                    var category = new Category { Name = name };
+                    database.Category.Add(category);
+                }
+                database.SaveChanges();
             }
         }
     }
