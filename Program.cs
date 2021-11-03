@@ -15,6 +15,7 @@ namespace BulletinBored
         public DbSet<User> User { get; set; }
         public DbSet<Post> Post { get; set; }
         public DbSet<Category> Category { get; set; }
+        public DbSet<Like> Like { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -31,8 +32,12 @@ namespace BulletinBored
         [MaxLength(12), Required]
         public string PassWord { get; set; }
         public List<Post> Posts { get; set; }
-        
+        public List<Like> Likes { get; set; }
 
+        public User()
+        {
+            Likes = new List<Like>();
+        }
     }
     public class Post
     {
@@ -40,11 +45,15 @@ namespace BulletinBored
         [MaxLength(255),Required]
         public string PostHeading { get; set; }
         public string PostContent { get; set; }
-        public int UserId { get; set; }
+        public User User { get; set; }
         public DateTime Date { get; set; }
-        public List<User> Likes { get; set; }
-       
-        public List<Category> Categories { get; set; }  
+        public List<Category> Categories { get; set; }
+        public List<Like> Likes { get; set; }
+
+        public Post()
+        {
+            Likes = new List<Like>();
+        }
     }
 
     public class Category
@@ -55,8 +64,16 @@ namespace BulletinBored
        
     }
 
+    public class Like
+    {
+        public int ID { get; set; }
+        public DateTime Date { get; set; }
+        public Post Post { get; set; }
+        public User User { get; set; }
+    }
 
-  
+
+
     class Program
     {
         public static AppDbContext database = new AppDbContext();
@@ -144,15 +161,47 @@ namespace BulletinBored
         private static void ListMostRecent()
         {
             var posts = database.Post.AsNoTracking().OrderBy(p => p.Date).Select(p => p.PostHeading).Take(5).ToArray();
-            int choice = ShowMenu("Which post would you like to read?", posts);
+            int choice = ShowMenu("Here are the 5 latest post ordered by date, choose to read.", posts);
 
             var postToShow = database.Post.AsNoTracking().OrderBy(p => p.Date).Take(5).Skip(choice).First();
 
+            WriteLine();
             WriteLine($"- {postToShow.PostHeading}");
             WriteLine($"- {postToShow.PostContent}");
             WriteLine($"- {postToShow.Date:g}");
+            WriteLine($"- {postToShow.Likes.Count()} likes.");
             WriteLine();
 
+            LikePost(postToShow);
+        }
+
+        private static void LikePost(Post post)
+        {
+            int choice = ShowMenu("Do you like this post?", new[] { "Yes", "No" });
+
+            if (choice == 0)
+            {
+                var checkLikes = currentUser.Likes.Any(l => l.Post.ID == post.ID);
+                if (checkLikes)
+                {
+                    WriteLine("You already like this post");
+                }
+                else
+                {
+                    var like = new Like
+                    {
+                        Date = DateTime.Now,
+                    };
+
+                    var currentPost = database.Post.Where(p => p.ID == post.ID).Single();
+
+                    currentPost.Likes.Add(like);
+                    currentUser.Likes.Add(like);
+                    database.Like.Add(like);
+                    database.SaveChanges(); 
+                }
+            }
+            else { }
         }
 
         private static void DeletePost()
@@ -175,7 +224,7 @@ namespace BulletinBored
             {
                 int choice = ShowMenu($"Choose Category {counter}", database.Category.Select( c => c.Name).ToArray());
                 counter++;
-                //takes the integer of the chosen category and converts it to the corresponding enum
+                
                 chosenCategories.Add(database.Category.Skip(choice).First()); 
                
 
@@ -196,12 +245,14 @@ namespace BulletinBored
             
             DateTime date = DateTime.Now;
 
+            
+
             var post = new Post
             {
                 PostHeading = heading,
                 PostContent = content,
                 Categories = categories,
-                Date = date                
+                Date = date,
             };
 
             currentUser.Posts.Add(post);
@@ -222,6 +273,14 @@ namespace BulletinBored
                     WriteLine($"- {post.PostHeading}");
                     WriteLine($"- {post.PostContent}");
                     WriteLine($"- {post.Date:g}");
+                    if (post.Likes.Count() == 0)
+                    {
+                        WriteLine("This post does not have any likes yet.");
+                    }
+                    else
+                    {
+                        WriteLine($"- {post.Likes.Count()} likes");
+                    }
                     WriteLine();
                 }
             }

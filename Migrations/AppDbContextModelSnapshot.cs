@@ -34,6 +34,31 @@ namespace BulletinBored.Migrations
                     b.ToTable("Category");
                 });
 
+            modelBuilder.Entity("BulletinBored.Like", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("PostID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("PostID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Like");
+                });
+
             modelBuilder.Entity("BulletinBored.Post", b =>
                 {
                     b.Property<int>("ID")
@@ -52,10 +77,12 @@ namespace BulletinBored.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserID")
                         .HasColumnType("int");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("UserID");
 
                     b.ToTable("Post");
                 });
@@ -97,19 +124,28 @@ namespace BulletinBored.Migrations
                     b.ToTable("CategoryPost");
                 });
 
-            modelBuilder.Entity("PostUser", b =>
+            modelBuilder.Entity("BulletinBored.Like", b =>
                 {
-                    b.Property<int>("LikesID")
-                        .HasColumnType("int");
+                    b.HasOne("BulletinBored.Post", "Post")
+                        .WithMany("Likes")
+                        .HasForeignKey("PostID");
 
-                    b.Property<int>("PostsID")
-                        .HasColumnType("int");
+                    b.HasOne("BulletinBored.User", "User")
+                        .WithMany("Likes")
+                        .HasForeignKey("UserID");
 
-                    b.HasKey("LikesID", "PostsID");
+                    b.Navigation("Post");
 
-                    b.HasIndex("PostsID");
+                    b.Navigation("User");
+                });
 
-                    b.ToTable("PostUser");
+            modelBuilder.Entity("BulletinBored.Post", b =>
+                {
+                    b.HasOne("BulletinBored.User", "User")
+                        .WithMany("Posts")
+                        .HasForeignKey("UserID");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CategoryPost", b =>
@@ -127,19 +163,16 @@ namespace BulletinBored.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PostUser", b =>
+            modelBuilder.Entity("BulletinBored.Post", b =>
                 {
-                    b.HasOne("BulletinBored.User", null)
-                        .WithMany()
-                        .HasForeignKey("LikesID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Likes");
+                });
 
-                    b.HasOne("BulletinBored.Post", null)
-                        .WithMany()
-                        .HasForeignKey("PostsID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            modelBuilder.Entity("BulletinBored.User", b =>
+                {
+                    b.Navigation("Likes");
+
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }

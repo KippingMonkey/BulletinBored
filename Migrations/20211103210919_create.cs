@@ -21,22 +21,6 @@ namespace BulletinBored.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Post",
-                columns: table => new
-                {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PostHeading = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    PostContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Post", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "User",
                 columns: table => new
                 {
@@ -48,6 +32,28 @@ namespace BulletinBored.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Post",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PostHeading = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PostContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserID = table.Column<int>(type: "int", nullable: true),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Post", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_Post_User_UserID",
+                        column: x => x.UserID,
+                        principalTable: "User",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,27 +81,30 @@ namespace BulletinBored.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PostUser",
+                name: "Like",
                 columns: table => new
                 {
-                    LikesID = table.Column<int>(type: "int", nullable: false),
-                    PostsID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PostID = table.Column<int>(type: "int", nullable: true),
+                    UserID = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PostUser", x => new { x.LikesID, x.PostsID });
+                    table.PrimaryKey("PK_Like", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_PostUser_Post_PostsID",
-                        column: x => x.PostsID,
+                        name: "FK_Like_Post_PostID",
+                        column: x => x.PostID,
                         principalTable: "Post",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_PostUser_User_LikesID",
-                        column: x => x.LikesID,
+                        name: "FK_Like_User_UserID",
+                        column: x => x.UserID,
                         principalTable: "User",
                         principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -104,9 +113,19 @@ namespace BulletinBored.Migrations
                 column: "PostsID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostUser_PostsID",
-                table: "PostUser",
-                column: "PostsID");
+                name: "IX_Like_PostID",
+                table: "Like",
+                column: "PostID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Like_UserID",
+                table: "Like",
+                column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Post_UserID",
+                table: "Post",
+                column: "UserID");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -115,7 +134,7 @@ namespace BulletinBored.Migrations
                 name: "CategoryPost");
 
             migrationBuilder.DropTable(
-                name: "PostUser");
+                name: "Like");
 
             migrationBuilder.DropTable(
                 name: "Category");
