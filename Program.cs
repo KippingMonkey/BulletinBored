@@ -103,11 +103,11 @@ namespace BulletinBored
                     }
                 }
                 WriteLine();
-              
+
                 running = true;
                 while (running)
                 {
-                    
+                    Clear();
                     WriteHeading("Main Menu");
                     int selected = ShowMenu("", new[] {
                     "My Posts",
@@ -140,51 +140,97 @@ namespace BulletinBored
 
         private static void ShowAllPosts()
         {
-            throw new NotImplementedException();
+            foreach (var post in database.Post)
+            {
+                ShowPostInfo(post);
+            }
+            WriteLine("Press any key to continue");
+            ReadKey();
         }
 
         private static void SearchPosts()
         {
-            throw new NotImplementedException();
+            ReadString("What do you wish to search for?");
         }
 
         private static void ListByCategory()
         {
-            throw new NotImplementedException();
+            WriteLine();
+
+            int choice1 = ShowMenu("", database.Category.OrderBy(c => c.Name).Select(c => c.Name).ToArray());
+
+            WriteLine();
+
+            var category = database.Category.OrderBy(c => c.Name).Skip(choice1).First();
+
+            var posts = database.Post.OrderBy(p => p.PostHeading).Where(p => p.Categories.Contains(category)).Select(p => p.PostHeading).ToArray();
+            int choice2 = ShowMenu($"Here are all posts tagged with {category.Name}.", posts);
+
+            var postHeading = posts.Skip(choice2).First();
+
+            var post = database.Post.Where(p => p.PostHeading == postHeading).Single();
+
+            ShowPostInfo(post);
+            LikePost(post);
         }
 
         private static void ListMostLiked()
         {
-            throw new NotImplementedException();
-        }
+            var posts = database.Post.AsNoTracking().OrderByDescending(p => p.Likes.Count()).Select(p => p.PostHeading).Take(5).ToArray();
+            int choice = ShowMenu("Here are the 5 most liked posts ordered by number of likes, choose to read.", posts);
 
-        private static void ListMostRecent()
-        {
-            var posts = database.Post.AsNoTracking().OrderBy(p => p.Date).Select(p => p.PostHeading).Take(5).ToArray();
-            int choice = ShowMenu("Here are the 5 latest post ordered by date, choose to read.", posts);
+            var postToShow = database.Post.AsNoTracking().OrderByDescending(p => p.Likes.Count()).Take(5).Skip(choice).First();
 
-            var postToShow = database.Post.AsNoTracking().OrderBy(p => p.Date).Take(5).Skip(choice).First();
-
-            WriteLine();
-            WriteLine($"- {postToShow.PostHeading}");
-            WriteLine($"- {postToShow.PostContent}");
-            WriteLine($"- {postToShow.Date:g}");
-            WriteLine($"- {postToShow.Likes.Count()} likes.");
-            WriteLine();
+            ShowPostInfo(postToShow);
 
             LikePost(postToShow);
         }
 
+        private static void ListMostRecent()
+        {
+            var posts = database.Post.AsNoTracking().OrderByDescending(p => p.Date).Select(p => p.PostHeading).Take(5).ToArray();
+            int choice = ShowMenu("Here are the 5 latest posts ordered by date, choose to read.", posts);
+
+            var postToShow = database.Post.AsNoTracking().OrderByDescending(p => p.Date).Take(5).Skip(choice).First();
+
+            ShowPostInfo(postToShow);
+
+            LikePost(postToShow);
+        }
+        private static void ShowPostInfo(Post post)
+        {
+                int postID = post.ID;
+                var like = database.Like.Select(x => x.Post).Where(p => p.ID == postID).Count();
+                WriteLine();
+                WriteLine($"- {post.PostHeading}");
+                WriteLine($"- {post.PostContent}");
+                WriteLine($"- {post.Date:g}");
+                if (like == 0)
+                {
+                    WriteLine("This post has no likes yet.");
+                }
+                else
+                {
+                    WriteLine($"- {like} likes.");
+                }
+                WriteLine(); 
+        }
+
         private static void LikePost(Post post)
         {
+            int postID = post.ID;
+            int userID = currentUser.ID;
+
+            bool liked = database.Like.Select(l => l.User).Any(u => u.ID == postID);
+
             int choice = ShowMenu("Do you like this post?", new[] { "Yes", "No" });
 
             if (choice == 0)
             {
-                var checkLikes = currentUser.Likes.Any(l => l.Post.ID == post.ID);
-                if (checkLikes)
+                if (liked)
                 {
                     WriteLine("You already like this post");
+                    ReadKey();
                 }
                 else
                 {
@@ -270,19 +316,11 @@ namespace BulletinBored
                 WriteHeading($"Posts by {currentUser.UserName}");
                 foreach (var post in currentUser.Posts)
                 {
-                    WriteLine($"- {post.PostHeading}");
-                    WriteLine($"- {post.PostContent}");
-                    WriteLine($"- {post.Date:g}");
-                    if (post.Likes.Count() == 0)
-                    {
-                        WriteLine("This post does not have any likes yet.");
-                    }
-                    else
-                    {
-                        WriteLine($"- {post.Likes.Count()} likes");
-                    }
-                    WriteLine();
+                    ShowPostInfo(post);
+                    
                 }
+                WriteLine("Press any key to continue");
+                ReadKey();
             }
         }
 
