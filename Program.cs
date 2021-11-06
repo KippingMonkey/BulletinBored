@@ -140,17 +140,35 @@ namespace BulletinBored
 
         private static void ShowAllPosts()
         {
-            foreach (var post in database.Post)
-            {
-                ShowPostInfo(post);
-            }
-            WriteLine("Press any key to continue");
-            ReadKey();
+            var posts = database.Post.AsNoTracking().OrderBy(p => p.PostHeading).Select(p => p.PostHeading).ToArray();
+            int choice = ShowMenu("Here are all posts on the board. Ordered by latest posts ordered by heading, choose to read.", posts);
+
+            var postToShow = database.Post.AsNoTracking().OrderByDescending(p => p.Date).Take(5).Skip(choice).First();
+
+            ShowPostInfo(postToShow);
+
+            LikePost(postToShow);
         }
 
         private static void SearchPosts()
         {
-            ReadString("What do you wish to search for?");
+            string searchFor = ReadString("What do you wish to search for?");
+
+            var results =  database.Post.Where(p => p.PostHeading.Contains(searchFor) || p.PostContent.Contains(searchFor))
+                                        .Select(p => p.PostHeading)
+                                        .ToArray();
+
+            int choice = ShowMenu($"Here are all the posts containing \"{searchFor}\", choose to read.", results);
+
+            var postToShow = database.Post.AsNoTracking()
+                                          .Where(p => p.PostHeading.Contains(searchFor) || p.PostContent.Contains(searchFor))
+                                          .First();
+
+            ShowPostInfo(postToShow);
+
+            LikePost(postToShow);
+
+
         }
 
         private static void ListByCategory()
@@ -197,14 +215,17 @@ namespace BulletinBored
 
             LikePost(postToShow);
         }
+
         private static void ShowPostInfo(Post post)
         {
                 int postID = post.ID;
+                var author = database.User.Where(u => u.Posts.Contains(post)).First();
                 var like = database.Like.Select(x => x.Post).Where(p => p.ID == postID).Count();
                 WriteLine();
-                WriteLine($"- {post.PostHeading}");
-                WriteLine($"- {post.PostContent}");
-                WriteLine($"- {post.Date:g}");
+                WriteLine($"Heading: {post.PostHeading}");
+                WriteLine($"Content: {post.PostContent}");
+                WriteLine($"Written: {post.Date:g}");
+                WriteLine($"By: {author.UserName}");
                 if (like == 0)
                 {
                     WriteLine("This post has no likes yet.");
@@ -221,7 +242,7 @@ namespace BulletinBored
             int postID = post.ID;
             int userID = currentUser.ID;
 
-            bool liked = database.Like.Select(l => l.User).Any(u => u.ID == postID);
+            bool liked = database.Like.Where(l => l.Post.ID == postID && l.User.ID == userID).Any();    
 
             int choice = ShowMenu("Do you like this post?", new[] { "Yes", "No" });
 
@@ -252,12 +273,31 @@ namespace BulletinBored
 
         private static void DeletePost()
         {
-            int choice = ShowMenu("Which post would you like to delete?", currentUser.Posts.Select(up => up.PostHeading).ToArray());
+            database.ChangeTracker.Clear();
 
-            var postToDelete = currentUser.Posts.Skip(choice).First();
+            if (currentUser.Posts.Count() == 0)
+            {
+                WriteLine("You have not made any post yet.");
+                ReadKey();
+            }
+            else
+            {
+                int choice = ShowMenu("Which post would you like to delete?", currentUser.Posts.Select(up => up.PostHeading).ToArray());
 
-            database.Remove(postToDelete);
-            database.SaveChanges();
+                var postToDelete = currentUser.Posts.Skip(choice).First();
+                int postID = postToDelete.ID;
+                var postInLikes = database.Like.Where(l => l.Post.ID == postID);
+                if (postInLikes.Count() != 0)
+                {
+                    foreach (var postLike in postInLikes)
+                    {
+                        database.Remove(postLike);
+                    }
+                }
+                database.Remove(postToDelete);
+                
+                database.SaveChanges();
+            }
         }
 
         public static List<Category> ChooseCategories()
@@ -310,6 +350,7 @@ namespace BulletinBored
             if (currentUser.Posts.Count() == 0)
             {
                 WriteLine("You have no posts to show");
+                ReadKey();
             }
             else 
             {
@@ -343,6 +384,7 @@ namespace BulletinBored
 
                     WriteLine("Account created.");
                     WriteLine($"You are logged in as {user.UserName}.");
+                    ReadKey();
                     currentUser = database.User.Include(u => u.Posts).Where(u => u.UserName == userName).Single();
 
                     break; 
@@ -377,6 +419,7 @@ namespace BulletinBored
                     else 
                     {
                         WriteLine($"You are logged in as {user.UserName}.");
+                        ReadKey();
                         currentUser = database.User.Include(u => u.Posts).Where(u => u.UserName == userName).Single();
                         return;
                     } 

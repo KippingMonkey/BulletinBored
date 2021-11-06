@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BulletinBored.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20211103210919_create")]
+    [Migration("20211106203844_create")]
     partial class create
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
